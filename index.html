@@ -123,7 +123,7 @@
     <section class="card">
       <div class="search-wrap">
         <input id="searchInput" class="search-box" type="search"
-               placeholder="اكتب اسم المادة أو الباركود للبحث..." autocomplete="off" disabled />
+               placeholder="اكتب اسم المادة أو الباركود وستظهر النتائج مباشرة..." autocomplete="off" disabled />
         <button id="searchBtn" class="btn btn-primary search-btn" disabled>🔎 بحث</button>
       </div>
       <div style="display:flex;justify-content:center;margin-top:12px">
@@ -404,11 +404,23 @@
 
   restoreSavedFile();
 
+  let liveSearchTimer = null;
   searchInput.addEventListener('input', () => {
-    if (!searchInput.value.trim()) {
+    clearTimeout(liveSearchTimer);
+
+    const query = searchInput.value.trim();
+    if (!query) {
       resultsSection.classList.add('hidden');
-      status.textContent = `تم تحميل ${rows.length} سجل. اكتب اسم المادة للبحث.`;
+      status.textContent = rows.length
+        ? `تم تحميل ${rows.length} سجل. اكتب اسم المادة للبحث.`
+        : 'قم برفع ملف Excel أولاً لبدء البحث.';
+      return;
     }
+
+    // بحث مباشر أثناء الكتابة، مع مهلة قصيرة لتجنب إعادة العرض مع كل ضغطة بسرعة.
+    liveSearchTimer = setTimeout(() => {
+      if (rows.length) doSearch();
+    }, 180);
   });
 
   function showError(msg) {
